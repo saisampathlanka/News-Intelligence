@@ -1,0 +1,114 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel docker-compose — local development / self-hosted stack
+#
+# Quick start:
+#   cp .env.example .env          # create env file (edit SECRET_KEY at minimum)
+#   docker-compose up -d
+#   docker-compose logs -f api
+#
+# First time or after schema changes:
+#   docker-compose exec api alembic upgrade head
+#
+# NOTE: .env is optional — sane defaults are provided below for local dev.
+#       For production use a real .env with a generated SECRET_KEY.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+version: "3.9"
+
+services:
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     newsuser
+      POSTGRES_PASSWORD: newspass
+      POSTGRES_DB:       newsdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U newsuser -d newsdb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # ── API + Alembic migrations ─────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      target: runtime          # uses multi-stage Dockerfile runtime stage
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # .env file is OPTIONAL — environment block below provides all required defaults.
+    # If .env exists it overrides these; if it doesn't exist docker-compose continues.
+    env_file:
+      - path: .env
+        required: false        # docker-compose v2.24+ — does not crash if file missing
+    environment:
+      # These defaults make `docker-compose up` work out of the box without a .env file.
+      # Any value set in .env takes precedence over these.
+      DATABASE_URL:                   postgresql://newsuser:newspass@db:5432/newsdb
+      ENV:                            development
+      DEBUG:                          "true"
+      PYTHONUNBUFFERED:               "1"
+      # Dev-safe placeholder — CHANGE in .env for any real deployment
+      SECRET_KEY:                     dev-secret-key-change-for-any-real-deployment
+      AUTH_MODE:                      required
+      ALLOWED_ORIGINS:                "*"
+      FETCH_INTERVAL_MINUTES:         "30"
+      MAX_ARTICLES_PER_SOURCE:        "30"
+      STOCK_UPDATE_INTERVAL_MINUTES:  "15"
+      RATE_LIMIT_DEFAULT:             "60"
+      RATE_LIMIT_EXPENSIVE:           "20"
+      RATE_LIMIT_ADMIN:               "10"
+      RATE_LIMIT_STOCKS:              "30"
+    volumes:
+      # Hot-reload mounts — remove these two lines for a production-equivalent build
+      - .:/app
+      - /app/__pycache__
+    # Run alembic migrations then start the server.
+    # This guarantees the users table (005) and all new columns (003/004) exist
+    # before the app tries to use them.
+    command: >
+      sh -c "
+        echo 'Running database migrations...' &&
+        alembic upgrade head &&
+        echo 'Starting API server...' &&
+        uvicorn backend.main:app
+          --host 0.0.0.0
+          --port 8000
+          --reload
+          --reload-dir backend
+          --reload-dir config
+      "
+    healthcheck:
+      test: ["CMD", "python", "-c",
+             "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s    # spaCy model load takes 5-15s; allow full 60s
+
+  # ── Frontend nginx ────────────────────────────────────────────────────────────
+  frontend:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+    driver: local
+

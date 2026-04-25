@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NewsIntel — Multi-Source Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0a;--surface:#111;--surface2:#181818;--border:#2a2a2a;
+  --text:#e8e4dc;--muted:#6b6b6b;--accent:#d4a843;--accent2:#8b5cf6;
+  --left:#3b82f6;--center:#22c55e;--right:#ef4444;
+  --font-serif:'Playfair Display',Georgia,serif;
+  --font-mono:'IBM Plex Mono',monospace;
+  --font-sans:'IBM Plex Sans',sans-serif;
+  --hh:56px;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font-sans);font-size:14px;line-height:1.6;min-height:100vh}
+a{color:inherit;text-decoration:none}
+button,select{cursor:pointer;font-family:var(--font-sans)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:200;height:var(--hh);background:var(--bg);border-bottom:1px solid var(--border);padding:0 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.brand{display:flex;align-items:baseline;gap:.75rem;flex-shrink:0}
+.brand h1{font-family:var(--font-serif);font-size:1.35rem;font-weight:900;letter-spacing:-.02em}
+.brand-tag{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);border:1px solid var(--accent);padding:2px 6px;letter-spacing:.12em;text-transform:uppercase}
+.hdr-right{display:flex;align-items:center;gap:.75rem}
+.dot-wrap{display:flex;align-items:center;gap:.4rem;font-family:var(--font-mono);font-size:.65rem;color:var(--muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--center);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{font-family:var(--font-mono);font-size:.68rem;padding:6px 14px;border:1px solid var(--border);background:transparent;color:var(--text);text-transform:uppercase;letter-spacing:.08em;transition:all .15s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.p{border-color:var(--accent);color:var(--accent)}
+.btn.p:hover{background:var(--accent);color:var(--bg)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* TICKER */
+.ticker-wrap{background:var(--surface);border-bottom:1px solid var(--border);height:30px;display:flex;align-items:center;overflow:hidden}
+.ticker-lbl{font-family:var(--font-mono);font-size:.6rem;background:var(--accent);color:var(--bg);padding:0 12px;height:100%;display:flex;align-items:center;white-space:nowrap;letter-spacing:.1em;flex-shrink:0}
+.ticker-track{overflow:hidden;flex:1}
+.ticker-inner{display:flex;gap:2.5rem;animation:marquee 50s linear infinite;width:max-content;padding-left:2rem}
+.ticker-inner:hover{animation-play-state:paused}
+.ti{font-family:var(--font-mono);font-size:.68rem;color:var(--muted);white-space:nowrap}
+.ti b{color:var(--text)}
+@keyframes marquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(5,1fr);background:var(--surface);border-bottom:1px solid var(--border)}
+.sc{padding:1rem 1.25rem;border-right:1px solid var(--border)}
+.sc:last-child{border-right:none}
+.sl{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.2rem}
+.sv{font-family:var(--font-serif);font-size:1.6rem;font-weight:700;line-height:1}
+.ss{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);margin-top:.15rem}
+
+/* TRENDING */
+.tb{background:var(--surface);border-bottom:1px solid var(--border);padding:.6rem 1.5rem;display:flex;align-items:center;gap:.75rem;overflow-x:auto;scrollbar-width:none}
+.tb::-webkit-scrollbar{display:none}
+.tb-lbl{font-family:var(--font-mono);font-size:.6rem;background:var(--accent2);color:#fff;padding:3px 10px;white-space:nowrap;letter-spacing:.1em;flex-shrink:0}
+.tc{display:flex;align-items:center;gap:.4rem;flex-shrink:0;padding:4px 10px;border:1px solid var(--border);cursor:pointer;transition:all .15s}
+.tc:hover{border-color:var(--accent2)}
+.tc.hot{border-color:var(--right)}
+.tc-name{font-size:.75rem;font-weight:500;text-transform:capitalize}
+.tc-cnt{font-family:var(--font-mono);font-size:.6rem;color:var(--muted)}
+.tbadge{font-family:var(--font-mono);font-size:.55rem;padding:1px 5px;background:var(--accent2);color:#fff}
+.tbadge.hot{background:var(--right)}
+
+/* STOCK */
+.sb{background:var(--bg);border-bottom:1px solid var(--border);padding:.5rem 1.5rem;display:flex;align-items:center;gap:.5rem;overflow-x:auto;scrollbar-width:none}
+.sb::-webkit-scrollbar{display:none}
+.sb-lbl{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;flex-shrink:0;padding-right:.75rem;border-right:1px solid var(--border)}
+.schip{display:flex;align-items:center;gap:.35rem;flex-shrink:0;padding:3px 8px;border:1px solid var(--border);font-family:var(--font-mono)}
+.sname{font-size:.62rem;color:var(--muted)}
+.sprice{font-size:.65rem;color:var(--text)}
+.schg{font-size:.65rem;font-weight:500}
+.up{color:var(--center)}.down{color:var(--right)}.flat{color:var(--muted)}
+.sarr{font-size:.6rem}
+.mmood{font-family:var(--font-mono);font-size:.55rem;padding:2px 7px;margin-left:.5rem;flex-shrink:0;border:1px solid;white-space:nowrap}
+.bull{color:var(--center);border-color:var(--center)}.bear{color:var(--right);border-color:var(--right)}.mixed{color:var(--muted);border-color:var(--border)}
+.rsel{font-family:var(--font-mono);font-size:.62rem;background:transparent;color:var(--accent);border:1px solid var(--accent);padding:2px 6px;margin-left:auto;flex-shrink:0}
+.rsel option{background:var(--surface)}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:220px 1fr 340px;min-height:calc(100vh - var(--hh) - 222px)}
+
+/* SIDEBAR */
+.sidebar{border-right:1px solid var(--border);overflow-y:auto;position:sticky;top:var(--hh);height:calc(100vh - var(--hh))}
+.sb-sec{padding:.75rem 0}
+.sb-title{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.2em;padding:0 1rem .6rem;border-bottom:1px solid var(--border);margin-bottom:.25rem}
+.tr{display:flex;align-items:center;justify-content:space-between;padding:.45rem 1rem;cursor:pointer;transition:background .1s;border-left:2px solid transparent}
+.tr:hover,.tr.on{background:var(--surface2);border-left-color:var(--accent)}
+.tr.on .tbg{background:var(--accent);color:var(--bg)}
+.tn{font-size:.8rem;text-transform:capitalize}
+.tbg{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);background:var(--surface2);padding:1px 6px}
+
+/* FEED */
+.feed{border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column}
+.feed-hdr{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--border);padding:.75rem 1.25rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;z-index:10}
+.feed-title{font-family:var(--font-mono);font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.14em}
+.bfilters{display:flex;gap:.35rem;flex-wrap:wrap}
+.bbtn{font-family:var(--font-mono);font-size:.62rem;padding:3px 9px;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .1s;text-transform:uppercase}
+.bbtn:hover{color:var(--text);border-color:var(--text)}
+.bbtn.on{border-color:var(--accent);color:var(--accent)}
+.bbtn[data-b="left"].on{border-color:var(--left);color:var(--left)}
+.bbtn[data-b="center"].on{border-color:var(--center);color:var(--center)}
+.bbtn[data-b="right"].on{border-color:var(--right);color:var(--right)}
+
+/* CARD */
+.card{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;animation:fi .3s ease both}
+.card:hover{background:var(--surface)}
+.card.sel{background:var(--surface2);border-left:3px solid var(--accent)}
+.cmeta{display:flex;align-items:center;gap:.6rem;margin-bottom:.4rem;flex-wrap:wrap}
+.csrc{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.06em}
+.ctopic{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);border:1px solid var(--border);padding:1px 5px;text-transform:capitalize}
+.cbias{font-family:var(--font-mono);font-size:.55rem;padding:2px 6px;margin-left:auto}
+.bl{color:var(--left);border:1px solid var(--left)}.bcl{color:#60a5fa;border:1px solid #60a5fa}.bc{color:var(--center);border:1px solid var(--center)}.bcr{color:#f97316;border:1px solid #f97316}.br{color:var(--right);border:1px solid var(--right)}
+.ctitle{font-family:var(--font-serif);font-size:.98rem;font-weight:700;line-height:1.35;margin-bottom:.35rem}
+.cdesc{font-size:.76rem;color:var(--muted);line-height:1.5;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cfooter{display:flex;align-items:center;gap:.6rem;margin-top:.6rem}
+.cdate{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);white-space:nowrap}
+.sentbar{flex:1;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+.sentfill{height:100%;border-radius:1px;transition:width .3s}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* PAGINATION */
+.pag{display:flex;align-items:center;justify-content:center;gap:.75rem;padding:.85rem;border-top:1px solid var(--border)}
+.pinfo{font-family:var(--font-mono);font-size:.65rem;color:var(--muted)}
+
+/* DETAIL */
+.detail{overflow-y:auto;background:var(--surface)}
+.de{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;color:var(--muted);gap:1rem;padding:2rem;text-align:center}
+.de-icon{font-size:2.5rem;opacity:.2}
+.de-txt{font-family:var(--font-mono);font-size:.68rem;text-transform:uppercase;letter-spacing:.1em;max-width:180px;line-height:2}
+.dbody{padding:1.4rem}
+.d-src{font-family:var(--font-mono);font-size:.6rem;color:var(--accent);text-transform:uppercase;letter-spacing:.14em;margin-bottom:.6rem}
+.d-ttl{font-family:var(--font-serif);font-size:1.2rem;font-weight:900;line-height:1.3;margin-bottom:.9rem}
+.d-desc{font-size:.8rem;color:#b0a89a;line-height:1.7;border-left:2px solid var(--border);padding-left:.9rem;margin-bottom:1.25rem}
+.ablock{margin-bottom:1.1rem}
+.albl{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.15em;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem}
+.albl::after{content:'';flex:1;height:1px;background:var(--border)}
+.bmeter{position:relative;height:5px;background:linear-gradient(to right,var(--left),var(--center),var(--right));border-radius:3px;margin:.6rem 0}
+.bneedle{position:absolute;top:50%;transform:translate(-50%,-50%);width:11px;height:11px;background:#fff;border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 0 2px #fff;transition:left .4s}
+.baxis{display:flex;justify-content:space-between;font-family:var(--font-mono);font-size:.55rem;color:var(--muted)}
+.bdetail{font-family:var(--font-mono);font-size:.62rem;margin-top:.4rem}
+.bdetail span{color:var(--accent)}
+.gauge{display:flex;align-items:center;gap:.6rem}
+.gbar{flex:1;height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.gfill{height:100%;border-radius:2px;transition:width .5s,background .5s}
+.gend{font-family:var(--font-mono);font-size:.6rem;color:var(--muted)}
+.gval{font-family:var(--font-mono);font-size:.68rem;width:40px;text-align:right}
+.eg{margin-bottom:.6rem}
+.el{font-family:var(--font-mono);font-size:.58rem;color:var(--muted);margin-bottom:.3rem}
+.tags{display:flex;flex-wrap:wrap;gap:.3rem}
+.tag{font-family:var(--font-mono);font-size:.62rem;padding:2px 8px;border:1px solid var(--border);color:var(--text);background:var(--bg)}
+.kws{display:flex;flex-wrap:wrap;gap:.3rem}
+.kw{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);padding:2px 6px;background:var(--bg);border:1px solid var(--border);transition:all .1s}
+.kw:hover{color:var(--accent);border-color:var(--accent)}
+.cnote{font-family:var(--font-mono);font-size:.6rem;color:var(--muted);border:1px solid var(--border);padding:.6rem .8rem;margin-top:1rem;line-height:1.7;background:var(--bg)}
+.cnote strong{color:var(--accent)}
+.rlink{display:inline-flex;align-items:center;gap:.35rem;margin-top:1.1rem;font-family:var(--font-mono);font-size:.68rem;color:var(--accent);border-bottom:1px solid var(--accent);padding-bottom:1px;letter-spacing:.04em}
+.rlink:hover{opacity:.7}
+
+/* SKELETON */
+.sk{background:linear-gradient(90deg,var(--surface) 25%,var(--surface2) 50%,var(--surface) 75%);background-size:400% 100%;animation:shim 1.5s infinite;border-radius:2px}
+@keyframes shim{0%{background-position:100% 0}100%{background-position:-100% 0}}
+.skcard{padding:1.1rem 1.25rem;border-bottom:1px solid var(--border)}
+.skl{height:9px;margin-bottom:7px;display:block}
+
+/* TOAST */
+#tc{position:fixed;bottom:1.5rem;right:1.5rem;z-index:999;display:flex;flex-direction:column;gap:.5rem}
+.toast{font-family:var(--font-mono);font-size:.68rem;padding:.7rem 1.1rem;background:var(--surface2);border:1px solid var(--border);color:var(--text);animation:tin .2s ease;max-width:300px}
+.toast.ok{border-color:var(--center);color:var(--center)}.toast.err{border-color:var(--right);color:var(--right)}.toast.info{border-color:var(--accent2);color:var(--accent2)}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* EMPTY STATE */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;text-align:center;gap:1rem}
+.empty p{font-family:var(--font-mono);font-size:.7rem;color:var(--muted);line-height:1.8;max-width:280px}
+.empty strong{color:var(--accent)}
+
+/* MOBILE DRAWER */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:300}
+.overlay.on{display:block}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--bg);border-right:1px solid var(--border);z-index:400;transform:translateX(-100%);transition:transform .25s;overflow-y:auto;padding-top:.5rem}
+.drawer.on{transform:translateX(0)}
+.drclose{display:flex;justify-content:flex-end;padding:.5rem 1rem .75rem;font-family:var(--font-mono);font-size:.7rem;color:var(--muted);cursor:pointer}
+
+/* MOBILE DETAIL MODAL */
+.dmodal{display:none;position:fixed;inset:0;z-index:500;background:var(--bg);overflow-y:auto}
+.dmodal.on{display:block}
+.mback{display:flex;align-items:center;gap:.5rem;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);font-family:var(--font-mono);font-size:.68rem;color:var(--accent);cursor:pointer;background:var(--surface);position:sticky;top:0;z-index:10}
+
+/* RESPONSIVE */
+@media(max-width:1100px){.layout{grid-template-columns:200px 1fr 300px}}
+@media(max-width:900px){.layout{grid-template-columns:200px 1fr}.detail{display:none}}
+@media(max-width:768px){
+  .layout{grid-template-columns:1fr}
+  .sidebar{display:none}
+  .detail{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .sc:nth-child(5){display:none}
+  .sv{font-size:1.3rem}
+  header{padding:0 1rem}
+  .brand-tag{display:none}
+}
+@media(max-width:480px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .sc:nth-child(n+4){display:none}
+  .sv{font-size:1.1rem}
+  .tb{padding:.5rem 1rem}
+  .sb{padding:.4rem 1rem}
+  .card{padding:.85rem 1rem}
+  .ctitle{font-size:.9rem}
+}
+</style>
+</head>
+<body>
+
+<!-- Mobile overlay + drawer -->
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drclose" onclick="closeDrawer()">✕ Close</div>
+  <div id="drawerContent"></div>
+</div>
+
+<!-- Mobile detail modal -->
+<div class="dmodal" id="dmodal">
+  <div class="mback" onclick="closeDModal()">← Back to articles</div>
+  <div id="dmodalBody"></div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="brand">
+    <button class="btn" id="menuBtn" onclick="openDrawer()" title="Topics" style="display:none;padding:6px 10px">☰</button>
+    <h1>NewsIntel</h1>
+    <span class="brand-tag">Intelligence Platform</span>
+  </div>
+  <div class="hdr-right">
+    <span class="dot-wrap"><span class="dot"></span><span id="statusTxt">Live</span></span>
+    <button class="btn p" id="refreshBtn" onclick="triggerPipeline()">↻ Refresh</button>
+    <a href="/docs" target="_blank" class="btn" id="docsBtn">API Docs</a>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-wrap">
+  <span class="ticker-lbl">LIVE</span>
+  <div class="ticker-track"><div class="ticker-inner" id="ticker"><span class="ti">Loading…</span></div></div>
+</div>
+
+<!-- STATS -->
+<div class="stats" id="stats">
+  <div class="sc"><div class="sl">Total Articles</div><div class="sv sk" style="height:26px;width:55px">&nbsp;</div></div>
+  <div class="sc"><div class="sl">Processed</div><div class="sv sk" style="height:26px;width:55px">&nbsp;</div></div>
+  <div class="sc"><div class="sl">Topics</div><div class="sv sk" style="height:26px;width:40px">&nbsp;</div></div>
+  <div class="sc"><div class="sl">Avg Sentiment</div><div class="sv sk" style="height:26px;width:60px">&nbsp;</div></div>
+  <div class="sc"><div class="sl">Center Bias %</div><div class="sv sk" style="height:26px;width:45px">&nbsp;</div></div>
+</div>
+
+<!-- TRENDING -->
+<div class="tb" id="tbar">
+  <span class="tb-lbl">🔥 Trending</span>
+  <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted)">Loading topics…</span>
+</div>
+
+<!-- STOCKS -->
+<div class="sb" id="sbar">
+  <span class="sb-lbl">📈 Markets</span>
+  <span style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted)">Loading…</span>
+  <select class="rsel" id="rsel" onchange="changeStockRegion(this.value)">
+    <option value="global">🌍 Global</option>
+    <option value="west">🇺🇸 US/UK</option>
+    <option value="europe">🇪🇺 Europe</option>
+    <option value="middle_east">🌙 Middle East</option>
+    <option value="india">🇮🇳 India</option>
+    <option value="southeast_asia">🌏 SE Asia</option>
+    <option value="east_asia">🀄 East Asia</option>
+    <option value="africa">🌍 Africa</option>
+    <option value="latin_america">🌎 LatAm</option>
+  </select>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-sec">
+      <div class="sb-title">Topics</div>
+      <div id="topicsList"><div class="tr"><span class="sk skl" style="width:80px"></span></div></div>
+    </div>
+  </aside>
+
+  <main class="feed" id="feedEl">
+    <div class="feed-hdr">
+      <span class="feed-title" id="feedTitle">All Sources</span>
+      <div class="bfilters">
+        <button class="bbtn on" data-b="all" onclick="setBiasFilter('all',this)">All</button>
+        <button class="bbtn" data-b="left" onclick="setBiasFilter('left',this)">Left</button>
+        <button class="bbtn" data-b="center" onclick="setBiasFilter('center',this)">Center</button>
+        <button class="bbtn" data-b="right" onclick="setBiasFilter('right',this)">Right</button>
+      </div>
+    </div>
+    <div id="articleList"></div>
+    <div class="pag" id="pag" style="display:none">
+      <button class="btn" id="prevBtn" onclick="changePage(-1)">← Prev</button>
+      <span class="pinfo" id="pinfo"></span>
+      <button class="btn" id="nextBtn" onclick="changePage(1)">Next →</button>
+    </div>
+  </main>
+
+  <aside class="detail" id="detailEl">
+    <div class="de"><div class="de-icon">◈</div><p class="de-txt">Select an article to view analysis</p></div>
+  </aside>
+</div>
+
+<div id="tc"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+// Change API_BASE to your backend URL when deploying frontend separately
+// e.g. 'https://news-intel-api.onrender.com'
+var API_BASE = '';
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var S = { topic: null, bias: 'all', page: 1, totalPages: 1, selectedId: null, stockRegion: 'global' };
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function isMobile() { return window.innerWidth <= 768; }
+function toast(msg, cls) {
+  var el = document.createElement('div');
+  el.className = 'toast ' + (cls || '');
+  el.textContent = msg;
+  document.getElementById('tc').appendChild(el);
+  setTimeout(function(){ el.remove(); }, 3500);
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  try { var d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); } catch(e){ return ''; }
+}
+function fmtShort(iso) {
+  if (!iso) return '';
+  try { var d = new Date(iso); return d.toLocaleDateString('en-US',{month:'short',day:'numeric'}); } catch(e){ return ''; }
+}
+function biasCSS(lbl) {
+  var m = {'left':'bl','center-left':'bcl','center':'bc','center-right':'bcr','right':'br'};
+  return m[lbl] || '';
+}
+function sentColor(v) {
+  if (v > 0.15) return 'var(--center)';
+  if (v < -0.15) return 'var(--right)';
+  return 'var(--muted)';
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function apiFetch(path) {
+  try {
+    var r = await fetch(API_BASE + path);
+    if (!r.ok) { console.warn('API ' + r.status, path); return null; }
+    return await r.json();
+  } catch(e) { console.error('fetch', path, e); return null; }
+}
+async function apiPost(path) {
+  try {
+    var r = await fetch(API_BASE + path, {method:'POST'});
+    if (!r.ok) { console.warn('POST ' + r.status, path); return null; }
+    return await r.json();
+  } catch(e) { console.error('post', path, e); return null; }
+}
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+function openDrawer() {
+  document.getElementById('drawer').classList.add('on');
+  document.getElementById('overlay').classList.add('on');
+}
+function closeDrawer() {
+  document.getElementById('drawer').classList.remove('on');
+  document.getElementById('overlay').classList.remove('on');
+}
+function closeDModal() { document.getElementById('dmodal').classList.remove('on'); }
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+async function loadSummary() {
+  var data = await apiFetch('/insights/summary');
+  if (!data) {
+    document.getElementById('stats').innerHTML = '<div class="sc" style="grid-column:1/-1"><div class="sl">Status</div><div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-top:.3rem">No data — click <strong style="color:var(--accent)">↻ Refresh</strong></div></div>';
+    return;
+  }
+  var total = data.total_articles || 0;
+  var proc = data.total_processed || 0;
+  var topics = (data.topics || []).length;
+  var sent = data.avg_sentiment || 0;
+  var bias = data.bias_distribution || {};
+  var cpct = proc > 0 ? Math.round((bias.center || 0) / proc * 100) : 0;
+  var sentcol = sent >= 0 ? 'var(--center)' : 'var(--right)';
+  var sentlbl = sent >= 0 ? 'Positive lean' : 'Negative lean';
+  var sentSign = sent >= 0 ? '+' : '';
+
+  document.getElementById('stats').innerHTML =
+    '<div class="sc"><div class="sl">Total Articles</div><div class="sv">' + total.toLocaleString() + '</div><div class="ss">All sources</div></div>' +
+    '<div class="sc"><div class="sl">Processed</div><div class="sv">' + proc.toLocaleString() + '</div><div class="ss">' + (total>0?Math.round(proc/total*100):0) + '% analysed</div></div>' +
+    '<div class="sc"><div class="sl">Topics</div><div class="sv">' + topics + '</div><div class="ss">Categories</div></div>' +
+    '<div class="sc"><div class="sl">Avg Sentiment</div><div class="sv" style="color:' + sentcol + '">' + sentSign + sent.toFixed(2) + '</div><div class="ss">' + sentlbl + '</div></div>' +
+    '<div class="sc"><div class="sl">Center Bias %</div><div class="sv">' + cpct + '%</div><div class="ss">L:' + (bias.left||0) + ' R:' + (bias.right||0) + '</div></div>';
+
+  var thtml = '<div class="tr ' + (!S.topic ? 'on' : '') + '" onclick="setTopic(null,this)"><span class="tn">All</span><span class="tbg">' + total + '</span></div>';
+  (data.topics || []).forEach(function(t) {
+    thtml += '<div class="tr ' + (S.topic===t.topic?'on':'') + '" onclick="setTopic(\'' + esc(t.topic) + '\',this)"><span class="tn">' + esc(t.topic) + '</span><span class="tbg">' + t.article_count + '</span></div>';
+  });
+  document.getElementById('topicsList').innerHTML = thtml;
+  document.getElementById('drawerContent').innerHTML = '<div class="sb-sec"><div class="sb-title">Topics</div>' + thtml + '</div>';
+
+  var tick = '';
+  (data.topics || []).forEach(function(t) {
+    var bc = (t.avg_bias_score || 0) < -0.15 ? 'var(--left)' : (t.avg_bias_score || 0) > 0.15 ? 'var(--right)' : 'var(--center)';
+    tick += '<span class="ti">' + t.topic.toUpperCase() + ' <b>' + t.article_count + '</b> art · Bias: <b style="color:' + bc + '">' + (t.bias_label||'center') + '</b></span>';
+  });
+  if (tick) document.getElementById('ticker').innerHTML = tick + tick;
+}
+
+// ── TRENDING ──────────────────────────────────────────────────────────────────
+async function loadTrending() {
+  var data = await apiFetch('/trending?hours=24&top_n=12');
+  var bar = document.getElementById('tbar');
+  if (!data || !data.trending || !data.trending.length) {
+    bar.innerHTML = '<span class="tb-lbl">🔥 Trending</span><span style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted)">No trends yet — refresh to load articles</span>';
+    return;
+  }
+  var h = '<span class="tb-lbl">🔥 Trending</span>';
+  data.trending.forEach(function(t, i) {
+    var hot = t.trend_velocity > 2 ? 'hot' : '';
+    var sentArrow = t.avg_sentiment > 0.2 ? '<span style="color:var(--center);font-family:var(--font-mono);font-size:.58rem">▲</span>' : t.avg_sentiment < -0.2 ? '<span style="color:var(--right);font-family:var(--font-mono);font-size:.58rem">▼</span>' : '';
+    h += '<div class="tc ' + hot + '" onclick="setTopic(\'' + esc(t.topic) + '\',null)" title="' + t.article_count + ' articles · ' + t.source_count + ' sources">' +
+      '<span style="font-family:var(--font-mono);font-size:.58rem;color:var(--muted)">' + (i+1) + '</span>' +
+      '<span class="tc-name">' + esc(t.topic) + '</span>' +
+      '<span class="tc-cnt">' + t.article_count + ' · ' + t.source_count + 'src</span>' +
+      sentArrow +
+      (t.is_contested ? '<span class="tbadge hot">contested</span>' : '') +
+      (t.trend_velocity > 2 ? '<span class="tbadge">↑ rising</span>' : '') +
+      '</div>';
+  });
+  bar.innerHTML = h;
+}
+
+// ── STOCKS ────────────────────────────────────────────────────────────────────
+function buildRsel(cur) {
+  var opts = [['global','🌍 Global'],['west','🇺🇸 US/UK'],['europe','🇪🇺 Europe'],['middle_east','🌙 Middle East'],['india','🇮🇳 India'],['southeast_asia','🌏 SE Asia'],['east_asia','🀄 East Asia'],['africa','🌍 Africa'],['latin_america','🌎 LatAm']];
+  var h = '<select class="rsel" id="rsel" onchange="changeStockRegion(this.value)">';
+  opts.forEach(function(o){ h += '<option value="' + o[0] + '"' + (o[0]===cur?' selected':'') + '>' + o[1] + '</option>'; });
+  return h + '</select>';
+}
+async function loadStocks(region) {
+  region = region || S.stockRegion;
+  S.stockRegion = region;
+  var s = document.getElementById('rsel');
+  if (s) s.value = region;
+  var data = await apiFetch('/stocks?region=' + region);
+  var bar = document.getElementById('sbar');
+  var pre = '<span class="sb-lbl">📈 Markets</span>';
+  if (!data || data.status === 'unavailable' || !data.indices || !data.indices.length) {
+    bar.innerHTML = pre + '<span style="font-family:var(--font-mono);font-size:.65rem;color:var(--muted)">Market closed or unavailable</span>' + buildRsel(region);
+    return;
+  }
+  var chips = '';
+  data.indices.slice(0,10).forEach(function(idx) {
+    var arr = idx.direction==='up' ? '▲' : idx.direction==='down' ? '▼' : '─';
+    chips += '<div class="schip" title="' + esc(idx.ticker) + '">' +
+      '<span class="sname">' + esc(idx.name) + '</span>' +
+      '<span class="sprice">' + (idx.price||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}) + '</span>' +
+      '<span class="schg ' + (idx.direction||'flat') + '">' + esc(idx.change_fmt) + '</span>' +
+      '<span class="sarr ' + (idx.direction||'flat') + '">' + arr + '</span></div>';
+  });
+  var mood = data.market_mood || 'mixed';
+  var moodCls = mood === 'bullish' ? 'bull' : mood === 'bearish' ? 'bear' : 'mixed';
+  bar.innerHTML = pre + chips + '<span class="mmood ' + moodCls + '">' + mood.toUpperCase() + '</span>' + buildRsel(region);
+}
+function changeStockRegion(r) { loadStocks(r); }
+
+// ── ARTICLES ──────────────────────────────────────────────────────────────────
+async function loadArticles() {
+  var list = document.getElementById('articleList');
+  var sk = '';
+  for (var i=0;i<6;i++) sk += '<div class="skcard"><div class="sk skl" style="width:45%"></div><div class="sk skl" style="width:80%;height:15px"></div><div class="sk skl" style="width:96%"></div><div class="sk skl" style="width:65%"></div></div>';
+  list.innerHTML = sk;
+
+  var url = '/articles?page=' + S.page + '&page_size=15';
+  if (S.topic) url += '&topic=' + encodeURIComponent(S.topic);
+  if (S.bias !== 'all') url += '&bias_label=' + encodeURIComponent(S.bias);
+
+  var data = await apiFetch(url);
+  if (!data) { list.innerHTML = '<div class="empty"><p>Could not load articles.<br>Check API connection.</p></div>'; return; }
+
+  S.totalPages = data.pages || 1;
+  document.getElementById('feedTitle').textContent = S.topic ? (S.topic.charAt(0).toUpperCase() + S.topic.slice(1)) : 'All Sources';
+
+  if (!data.articles || !data.articles.length) {
+    list.innerHTML = '<div class="empty"><p>No articles found.<br>Try <strong>↻ Refresh</strong> or change filters.</p></div>';
+  } else {
+    var h = '';
+    data.articles.forEach(function(a, i) { h += buildCard(a, i); });
+    list.innerHTML = h;
+  }
+
+  var pag = document.getElementById('pag');
+  if (S.totalPages > 1) {
+    pag.style.display = 'flex';
+    document.getElementById('pinfo').textContent = 'Page ' + S.page + ' of ' + S.totalPages;
+    document.getElementById('prevBtn').disabled = S.page <= 1;
+    document.getElementById('nextBtn').disabled = S.page >= S.totalPages;
+  } else {
+    pag.style.display = 'none';
+  }
+}
+
+function buildCard(a, idx) {
+  var bc = biasCSS(a.bias_label);
+  var biasHtml = a.bias_label ? '<span class="cbias ' + bc + '">' + esc(a.bias_label) + '</span>' : '';
+  var topicHtml = a.topic ? '<span class="ctopic">' + esc(a.topic) + '</span>' : '';
+  var sp = a.sentiment_score != null ? Math.round(((a.sentiment_score+1)/2)*100) : 50;
+  var sc = a.sentiment_score != null ? sentColor(a.sentiment_score) : 'var(--muted)';
+  var sel = S.selectedId === a.id ? 'sel' : '';
+  return '<div class="card ' + sel + '" style="animation-delay:' + (idx*0.04) + 's" onclick="selectArticle(' + a.id + ')" data-id="' + a.id + '">' +
+    '<div class="cmeta"><span class="csrc">' + esc(a.source_name) + '</span>' + topicHtml + biasHtml + '</div>' +
+    '<div class="ctitle">' + esc(a.title) + '</div>' +
+    (a.description ? '<div class="cdesc">' + esc(a.description) + '</div>' : '') +
+    '<div class="cfooter"><span class="cdate">' + fmtShort(a.published_at) + '</span>' +
+    '<div class="sentbar"><div class="sentfill" style="width:' + sp + '%;background:' + sc + '"></div></div>' +
+    '</div></div>';
+}
+
+// ── DETAIL ────────────────────────────────────────────────────────────────────
+async function selectArticle(id) {
+  S.selectedId = id;
+  document.querySelectorAll('.card').forEach(function(el) {
+    el.classList.toggle('sel', parseInt(el.getAttribute('data-id')) === id);
+  });
+
+  var target = isMobile() ? document.getElementById('dmodalBody') : document.getElementById('detailEl');
+  if (isMobile()) document.getElementById('dmodal').classList.add('on');
+  target.innerHTML = '<div style="padding:1.5rem"><div class="sk" style="height:180px;display:block"></div></div>';
+
+  var a = await apiFetch('/articles/' + id);
+  if (!a) { target.innerHTML = '<div class="de"><div class="de-icon">✗</div><p class="de-txt">Failed to load</p></div>'; return; }
+
+  var bp = a.bias_score != null ? ((a.bias_score+1)/2*100) : 50;
+  var sp = a.sentiment_score != null ? Math.round(((a.sentiment_score+1)/2)*100) : 50;
+  var sc = a.sentiment_score != null ? sentColor(a.sentiment_score) : 'var(--muted)';
+  var ss = a.sentiment_score >= 0 ? '+' : '';
+  var ents = a.entities || {};
+  var kws = a.keywords || [];
+
+  var h = '<div class="dbody">';
+  h += '<div class="d-src">' + esc(a.source_name) + ' &nbsp;·&nbsp; ' + fmtDate(a.published_at) + (a.author ? ' &nbsp;·&nbsp; ' + esc(a.author) : '') + '</div>';
+  h += '<div class="d-ttl">' + esc(a.title) + '</div>';
+  if (a.description) h += '<div class="d-desc">' + esc(a.description) + '</div>';
+
+  h += '<div class="ablock"><div class="albl">Political Bias</div>' +
+    '<div class="bmeter"><div class="bneedle" style="left:' + bp + '%"></div></div>' +
+    '<div class="baxis"><span>Left</span><span>Center</span><span>Right</span></div>' +
+    '<div class="bdetail">Label: <span>' + esc(a.bias_label || 'unknown') + '</span> &nbsp;·&nbsp; Score: <span>' + (a.bias_score != null ? a.bias_score.toFixed(2) : 'N/A') + '</span></div></div>';
+
+  h += '<div class="ablock"><div class="albl">Sentiment</div>' +
+    '<div class="gauge"><span class="gend">−</span>' +
+    '<div class="gbar"><div class="gfill" style="width:' + sp + '%;background:' + sc + '"></div></div>' +
+    '<span class="gend">+</span><span class="gval" style="color:' + sc + '">' + ss + (a.sentiment_score != null ? a.sentiment_score.toFixed(2) : 'N/A') + '</span></div></div>';
+
+  var hasEnts = (ents.people && ents.people.length) || (ents.organizations && ents.organizations.length) || (ents.places && ents.places.length);
+  if (hasEnts) {
+    h += '<div class="ablock"><div class="albl">Named Entities</div>';
+    if (ents.people && ents.people.length) {
+      h += '<div class="eg"><div class="el">People</div><div class="tags">';
+      ents.people.forEach(function(e){ h += '<span class="tag">' + esc(e) + '</span>'; });
+      h += '</div></div>';
+    }
+    if (ents.organizations && ents.organizations.length) {
+      h += '<div class="eg"><div class="el">Organizations</div><div class="tags">';
+      ents.organizations.forEach(function(e){ h += '<span class="tag">' + esc(e) + '</span>'; });
+      h += '</div></div>';
+    }
+    if (ents.places && ents.places.length) {
+      h += '<div class="eg"><div class="el">Places</div><div class="tags">';
+      ents.places.forEach(function(e){ h += '<span class="tag">' + esc(e) + '</span>'; });
+      h += '</div></div>';
+    }
+    h += '</div>';
+  }
+
+  if (kws.length) {
+    h += '<div class="ablock"><div class="albl">Keywords</div><div class="kws">';
+    kws.forEach(function(k){ h += '<span class="kw">' + esc(k) + '</span>'; });
+    h += '</div></div>';
+  }
+
+  h += '<div class="cnote"><strong>⚠ Note:</strong> Bias and sentiment are heuristic estimates — not absolute truth. Cross-reference multiple sources for informed conclusions.</div>';
+  h += '<a href="' + esc(a.url) + '" target="_blank" rel="noopener" class="rlink">Read full article →</a>';
+  h += '</div>';
+  target.innerHTML = h;
+}
+
+// ── FILTERS ───────────────────────────────────────────────────────────────────
+function setTopic(topic, el) {
+  S.topic = topic; S.page = 1;
+  document.querySelectorAll('.tr').forEach(function(r){ r.classList.remove('on'); });
+  if (el) el.classList.add('on');
+  closeDrawer();
+  loadArticles();
+}
+function setBiasFilter(bias, el) {
+  S.bias = bias; S.page = 1;
+  document.querySelectorAll('.bbtn').forEach(function(b){ b.classList.remove('on'); });
+  if (el) el.classList.add('on');
+  loadArticles();
+}
+function changePage(dir) {
+  S.page = Math.max(1, Math.min(S.totalPages, S.page + dir));
+  loadArticles();
+  document.getElementById('feedEl').scrollTo(0, 0);
+}
+
+// ── PIPELINE ──────────────────────────────────────────────────────────────────
+async function triggerPipeline() {
+  var btn = document.getElementById('refreshBtn');
+  btn.disabled = true; btn.textContent = '↻ Fetching…';
+  document.getElementById('statusTxt').textContent = 'Ingesting…';
+  toast('Ingesting news from all sources…', 'info');
+  var data = await apiPost('/admin/pipeline');
+  if (data) {
+    var saved = (data.ingestion && data.ingestion.saved) || 0;
+    var processed = (data.processing && data.processing.processed) || 0;
+    toast('✓ Saved ' + saved + ' articles, processed ' + processed, 'ok');
+    await loadSummary();
+    await loadArticles();
+    await loadTrending();
+  } else {
+    toast('Pipeline failed — check API connection', 'err');
+  }
+  btn.disabled = false; btn.textContent = '↻ Refresh';
+  document.getElementById('statusTxt').textContent = 'Live';
+}
+
+// ── LAYOUT ────────────────────────────────────────────────────────────────────
+function updateLayout() {
+  var m = window.innerWidth <= 768;
+  document.getElementById('menuBtn').style.display = m ? 'inline-flex' : 'none';
+  document.getElementById('docsBtn').style.display = window.innerWidth > 600 ? 'inline-flex' : 'none';
+}
+window.addEventListener('resize', updateLayout);
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function init() {
+  updateLayout();
+  await loadSummary();
+  await loadArticles();
+  await loadTrending();
+  await loadStocks(S.stockRegion);
+})();
+</script>
+</body>
+</html>

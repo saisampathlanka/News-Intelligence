@@ -1,0 +1,80 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel Fly.io configuration — v5
+#
+# One-time setup:
+#   fly launch --no-deploy --name news-intel
+#   fly postgres create --name news-intel-db --region ord
+#   fly postgres attach news-intel-db        # auto-sets DATABASE_URL secret
+#   fly secrets set \
+#       SECRET_KEY=$(python -c "import secrets; print(secrets.token_hex(32))") \
+#       AUTH_MODE=required \
+#       ALLOWED_ORIGINS=https://news-intel.fly.dev
+#   fly deploy
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+app            = "news-intel"
+primary_region = "ord"
+
+[build]
+  # Uses Dockerfile at repo root (multi-stage, non-root)
+
+[deploy]
+  # release_command runs BEFORE the new VM takes traffic.
+  # This ensures migrations 003-005 (bias_confidence, indexes, users table)
+  # are applied against the live database before the new app version starts.
+  release_command = "alembic upgrade head"
+
+[http_service]
+  internal_port        = 8000
+  force_https          = true
+  auto_stop_machines   = true
+  auto_start_machines  = true
+  min_machines_running = 0
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 25
+    soft_limit = 20
+
+  # Health check — allow 60s for spaCy model load on cold start
+  [[http_service.checks]]
+    grace_period  = "60s"
+    interval      = "30s"
+    method        = "GET"
+    path          = "/health"
+    timeout       = "10s"
+
+[[vm]]
+  memory   = "512mb"
+  cpu_kind = "shared"
+  cpus     = 1
+
+[env]
+  ENV                           = "production"
+  DEBUG                         = "false"
+  PYTHONUNBUFFERED              = "1"
+  FETCH_INTERVAL_MINUTES        = "60"
+  MAX_ARTICLES_PER_SOURCE       = "50"
+  STOCK_UPDATE_INTERVAL_MINUTES = "15"
+  ACCESS_TOKEN_EXPIRE_MINUTES   = "30"
+  REFRESH_TOKEN_EXPIRE_DAYS     = "7"
+  RATE_LIMIT_DEFAULT            = "60"
+  RATE_LIMIT_EXPENSIVE          = "20"
+  RATE_LIMIT_ADMIN              = "10"
+  RATE_LIMIT_STOCKS             = "30"
+  CACHE_TTL_SUMMARY             = "60"
+  CACHE_TTL_TOPICS              = "120"
+  CACHE_TTL_ARTICLES            = "30"
+  CACHE_TTL_TRENDING            = "90"
+  CACHE_TTL_STOCKS              = "60"
+
+# Secrets (set via fly secrets set — never in this file):
+#   SECRET_KEY      — python -c "import secrets; print(secrets.token_hex(32))"
+#   DATABASE_URL    — auto-set by fly postgres attach
+#   AUTH_MODE       — required
+#   ALLOWED_ORIGINS — https://your-frontend-domain.com
+
+[[statics]]
+  guest_path = "/app/frontend"
+  url_prefix = "/static"
+

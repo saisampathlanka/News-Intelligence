@@ -1,0 +1,25 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel v5 — Development Requirements
+# Includes all production deps plus testing, linting, and type checking.
+# Install: pip install --prefer-binary -r requirements-dev.txt
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+-r requirements.txt
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.2.0
+pytest-asyncio==0.23.7        # async test support
+pytest-cov==5.0.0             # coverage reports
+httpx==0.27.0                 # HTTPX for TestClient
+
+# ── Code Quality ─────────────────────────────────────────────────────────────
+black==24.4.2                 # code formatter
+ruff==0.4.4                   # fast linter (replaces flake8 + isort + pyupgrade)
+mypy==1.10.0                  # static type checker
+
+# ── Type Stubs ───────────────────────────────────────────────────────────────
+types-bleach==6.1.0.20240331
+types-python-dateutil==2.9.0.20240316
+
+# ── Dev Utilities ─────────────────────────────────────────────────────────────
+ipython==8.24.0               # interactive REPL
+rich==13.7.1                  # pretty terminal output for scripts

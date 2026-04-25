@@ -1,0 +1,104 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual Environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+.env.bak
+
+# ── Environment & Secrets ─────────────────────────────────────────────────────
+.env
+*.env
+!.env.example          # keep the template
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+news_intel.db
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+app.log
+logs/
+
+# ── Distribution / Build ──────────────────────────────────────────────────────
+dist/
+build/
+*.egg-info/
+*.egg
+.eggs/
+wheels/
+pip-wheel-metadata/
+MANIFEST
+
+# ── Testing & Coverage ────────────────────────────────────────────────────────
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+nosetests.xml
+test-results/
+
+# ── Type Checking ─────────────────────────────────────────────────────────────
+.mypy_cache/
+.dmypy.json
+.pytype/
+
+# ── Jupyter ───────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+*.ipynb
+
+# ── spaCy Models (large, download at runtime) ────────────────────────────────
+backend/models/spacy_models/
+*.whl
+
+# ── IDE / Editors ─────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+Desktop.ini
+$RECYCLE.BIN/
+
+# ── Docker ────────────────────────────────────────────────────────────────────
+.dockerignore
+docker-compose.override.yml
+
+# ── Alembic ───────────────────────────────────────────────────────────────────
+# Keep migration versions, ignore only local state
+alembic/versions/*.pyc
+
+# ── Node (if frontend tooling added later) ────────────────────────────────────
+node_modules/
+npm-debug.log*
+yarn-error.log*
+.npm
+
+# ── Deployment Artifacts ──────────────────────────────────────────────────────
+*.zip
+.vercel/
+.netlify/
+
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.bak
+*.tmp
+*.orig
+.cache/

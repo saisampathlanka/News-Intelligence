@@ -1,0 +1,61 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel Railway configuration — v5
+#
+# This file configures the API (backend) service ONLY.
+# The frontend uses Dockerfile.frontend — set that in Railway service settings.
+#
+# Setup:
+#   1. railway login && railway init
+#   2. In Railway dashboard, add a PostgreSQL database (news-intel-db).
+#   3. In the API service, set these environment variables:
+#        DATABASE_URL    = ${{news-intel-db.DATABASE_URL}}   ← Railway reference var
+#        SECRET_KEY      = <run: python -c "import secrets; print(secrets.token_hex(32))">
+#        ALLOWED_ORIGINS = https://your-frontend.railway.app
+#   !! DATABASE_URL must come from the Railway DB reference variable, NOT from
+#      Supabase or any external host. Railway containers cannot reach external
+#      IPv6 PostgreSQL hosts at deploy time.
+#   4. railway up  (deploys the API service)
+#   5. For the frontend service, set "Dockerfile Path" = Dockerfile.frontend
+#      in Railway service settings.
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[build]
+  builder = "NIXPACKS"
+  # Nixpacks reads .python-version → 3.11.9 automatically.
+  # spaCy download must use --user so the model is in the user package path.
+  buildCommand = "pip install --prefer-binary -r requirements.txt && python -m spacy download en_core_web_sm --user"
+
+[deploy]
+  # Run migrations before starting the server on every deploy.
+  # This ensures the users table (005), bias_confidence column (003),
+  # and query indexes (004) all exist before app code runs.
+  # Railway does not have a separate release_command, so we chain with &&.
+  startCommand       = "alembic upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
+  healthcheckPath    = "/health"
+  healthcheckTimeout = 60       # allow spaCy model load time
+  restartPolicyType  = "ON_FAILURE"
+  restartPolicyMaxRetries = 3
+
+# Non-secret environment variables.
+# DATABASE_URL, SECRET_KEY, ALLOWED_ORIGINS must be set as Railway service variables.
+# IMPORTANT: Set DATABASE_URL = ${{news-intel-db.DATABASE_URL}} — NOT a Supabase URL.
+[variables]
+  ENV                           = "production"
+  DEBUG                         = "false"
+  PYTHONUNBUFFERED              = "1"
+  AUTH_MODE                     = "required"
+  ACCESS_TOKEN_EXPIRE_MINUTES   = "30"
+  REFRESH_TOKEN_EXPIRE_DAYS     = "7"
+  FETCH_INTERVAL_MINUTES        = "60"
+  MAX_ARTICLES_PER_SOURCE       = "50"
+  STOCK_UPDATE_INTERVAL_MINUTES = "15"
+  RATE_LIMIT_DEFAULT            = "60"
+  RATE_LIMIT_EXPENSIVE          = "20"
+  RATE_LIMIT_ADMIN              = "10"
+  RATE_LIMIT_STOCKS             = "30"
+  CACHE_TTL_SUMMARY             = "60"
+  CACHE_TTL_TOPICS              = "120"
+  CACHE_TTL_ARTICLES            = "30"
+  CACHE_TTL_TRENDING            = "90"
+  CACHE_TTL_STOCKS              = "60"
+

@@ -1,0 +1,47 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel v5 — Production Requirements
+# Install: pip install --prefer-binary -r requirements.txt
+# Dev deps: pip install -r requirements-dev.txt
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+# ── Web Framework ─────────────────────────────────────────────────────────────
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.1
+pydantic-settings==2.3.1
+
+# ── Database ──────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.30
+alembic==1.13.1
+psycopg2-binary==2.9.9       # PostgreSQL driver (binary = no compile needed)
+
+# ── HTTP & Feeds ──────────────────────────────────────────────────────────────
+httpx==0.27.0
+feedparser==6.0.11
+aiohttp==3.9.5
+aiofiles==23.2.1              # FastAPI StaticFiles dependency
+
+# ── NLP ───────────────────────────────────────────────────────────────────────
+# Install with --prefer-binary to avoid C compilation on restricted hosts
+spacy>=3.7.4,<3.8.0
+scikit-learn==1.5.0
+numpy==1.26.4
+
+# ── Scheduler ─────────────────────────────────────────────────────────────────
+apscheduler==3.10.4
+
+# ── Market Data ───────────────────────────────────────────────────────────────
+yfinance==0.2.40              # Yahoo Finance — free, no API key required
+
+# ── Security ──────────────────────────────────────────────────────────────────
+# Note: JWT and password hashing use Python stdlib (hmac, hashlib, secrets).
+# No jose, pyjwt, bcrypt, or passlib required.
+
+# ── Rate Limiting ─────────────────────────────────────────────────────────────
+slowapi==0.1.9
+
+# ── Utilities ─────────────────────────────────────────────────────────────────
+python-dotenv==1.0.1
+tenacity==8.3.0               # Retry logic for news API fetchers
+bleach==6.1.0                 # HTML sanitization for RSS content
+python-dateutil==2.9.0        # Flexible date parsing across RSS formats

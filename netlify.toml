@@ -1,0 +1,36 @@
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# NewsIntel v5 — Netlify Frontend Configuration
+#
+# Deploy:
+#   1. netlify login && netlify init
+#   2. Set API_BASE in frontend/index.html:
+#        var API_BASE = 'https://your-api.onrender.com';
+#   3. netlify deploy --prod
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[build]
+  publish     = "frontend"
+  # No build step needed — pure static HTML
+
+# SPA fallback — serve index.html for all routes
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# Security headers for all responses
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    X-Frame-Options        = "DENY"
+    X-XSS-Protection       = "1; mode=block"
+    Referrer-Policy        = "strict-origin-when-cross-origin"
+    Permissions-Policy     = "geolocation=(), microphone=(), camera=()"
+    Cache-Control          = "public, max-age=3600"
+
+# Never cache index.html — ensures users get fresh JS on deploys
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "no-store"
