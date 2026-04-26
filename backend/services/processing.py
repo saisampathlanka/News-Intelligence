@@ -89,7 +89,7 @@ def _process_single(article: Article):
     
     logger.debug(
         "Processed article %d: topic=%s, bias=%s (%.2f), sentiment=%.2f",
-        article.id, topic, bias_label, bias_score, sentiment
+        article.id, topic, bias_result.label, bias_result.score, sentiment
     )
 
 
