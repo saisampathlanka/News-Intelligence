@@ -35,7 +35,7 @@ def _label(score) -> str:
 
 
 @router.get("/topics", response_model=List[TopicSummary])
-def get_topics(request: Request, db: Session = Depends(get_db), _user: User = Depends(require_auth)):
+def get_topics(request: Request, db: Session = Depends(get_db)):
     """Topic statistics — cached."""
     from config.settings import settings
     cache = get_cache()
@@ -74,7 +74,7 @@ def get_topics(request: Request, db: Session = Depends(get_db), _user: User = De
 
 
 @router.get("/bias-distribution", response_model=BiasDistribution)
-def get_bias_distribution(request: Request, db: Session = Depends(get_db), _user: User = Depends(require_auth)):
+def get_bias_distribution(request: Request, db: Session = Depends(get_db)):
     """Bias label counts — cached."""
     from config.settings import settings
     cache = get_cache()
@@ -102,7 +102,7 @@ def get_bias_distribution(request: Request, db: Session = Depends(get_db), _user
 
 
 @router.get("/summary", response_model=InsightsSummary)
-def get_insights_summary(request: Request, db: Session = Depends(get_db), _user: User = Depends(require_auth)):
+def get_insights_summary(request: Request, db: Session = Depends(get_db)):
     """
     Platform overview.
 

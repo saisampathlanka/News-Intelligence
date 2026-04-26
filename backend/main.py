@@ -311,6 +311,31 @@ async def startup():
     # Start background scheduler
     start_scheduler()
 
+    # Trigger initial data fetch if DB is empty (so dashboard isn't blank on first load)
+    _trigger_initial_fetch()
+
+
+def _trigger_initial_fetch():
+    """Run ingestion, processing and stock refresh in background on first start."""
+    from backend.core.database import SessionLocal
+    from backend.models.article import Article
+    db = SessionLocal()
+    try:
+        count = db.query(Article).count()
+        if count == 0:
+            logger.info("Database empty — triggering initial news ingestion")
+            from backend.core.scheduler import _ingest_job, _process_job, _stock_refresh_job
+            import threading
+            def run_init():
+                _ingest_job()
+                _process_job()
+                _stock_refresh_job()
+            threading.Thread(target=run_init, daemon=True).start()
+    except Exception as e:
+        logger.warning("Could not trigger initial fetch: %s", e)
+    finally:
+        db.close()
+
 
 @app.on_event("shutdown")
 async def shutdown():
