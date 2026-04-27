@@ -408,6 +408,7 @@ async function apiPost(path, body) {
     
     var r = await fetch(API_BASE + path, opts);
     if (r.status === 401) return { error: 'unauthorized' };
+    if (r.status === 403) return { error: 'forbidden' };
     if (!r.ok) return null;
     return await r.json();
   } catch(e) { console.error('post', path, e); return null; }
@@ -676,6 +677,9 @@ async function triggerPipeline() {
   toast('Ingesting news from all sources…', 'info');
   var data = await apiPost('/admin/pipeline');
   if (data && data.error === 'unauthorized') {
+    handleAuth();
+    toast('Login required', 'err');
+  } else if (data && data.error === 'forbidden') {
     toast('Permission denied — admin role required', 'err');
   } else if (data) {
     var saved = (data.ingestion && data.ingestion.saved) || 0;
