@@ -35,8 +35,8 @@
   # and query indexes (004) all exist before app code runs.
   # Railway does not have a separate release_command, so we chain with &&.
   startCommand       = "alembic upgrade head && uvicorn backend.main:app --host 0.0.0.0 --port $PORT"
-  healthcheckPath    = "/health"
-  healthcheckTimeout = 60       # allow spaCy model load time
+  # healthcheckPath    = "/health"
+  # healthcheckTimeout = 60       # allow spaCy model load time
   restartPolicyType  = "ON_FAILURE"
   restartPolicyMaxRetries = 3
 
