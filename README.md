@@ -12,7 +12,9 @@ A production-ready news aggregation platform that ingests 35+ global RSS feeds, 
 |--------|--------|
 | **Auth** | JWT + API key authentication on all sensitive endpoints |
 | **Bias Detection** | 3-signal engine: source baseline + keyword weights + framing intensity |
-| **Fact Intersection** | TF-IDF story clustering, common fact extraction, conflict detection |
+| **Frontend** | Decoupled and modularized into app.js and style.css |
+| **Stocks** | Integrated Geolocation API to localize market metrics automatically |
+| **UX** | Custom UI exception handlers (404, 401) and seamless post-auth auto-refresh |
 | **Cache Layer** | In-memory TTL cache — 5-query `/insights/summary` now 2 queries |
 | **Rate Limiting** | 4-tier sliding window (10/20/30/60 req/min per IP) |
 | **Security** | Security headers, safe error handling, CORS from env |

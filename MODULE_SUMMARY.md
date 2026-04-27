@@ -164,6 +164,29 @@ Apply all: `alembic upgrade head`
 
 ---
 
+### Module 9 — Frontend Architecture (refactored)
+**Files:** `frontend/index.html`, `frontend/style.css`, `frontend/app.js`
+
+Fully decoupled presentation, logic, and style:
+- **`index.html`**: Pure structural markup and layout elements.
+- **`style.css`**: CSS grid, mobile-first responsive design, animated UI components (skeletons, toast notifications).
+- **`app.js`**: Vanilla JS asynchronous logic.
+   - Dynamic role-based rendering (Refresh pipeline only visible to admins).
+   - Global auth/session token handling across components.
+   - Smart geolocation mapping: Detects user coordinates, maps to geographic boundaries, and requests localized financial data.
+   - Auto-refresh synchronization after Auth events.
+
+---
+
+### Module 10 — Deployment & Resilience (new)
+**Files:** `backend/main.py` (`ExceptionMiddleware`, `/health`), `railway.toml`, `frontend/railway.toml`
+
+Dual-Service CI/CD on Railway:
+- **API Service**: Runs Python 3.11 with FastAPI. Bootstraps PostgreSQL migrations via Alembic `startCommand` ensuring database schema matches API state before traffic is routed. Global Exception Middleware traps any internal 4xx/5xx failures and routes them to a branded Custom HTML error page.
+- **Frontend Service**: Vanilla JS static host linked directly to the API via environment variables.
+
+---
+
 ## File Count
 
 | Category | Count |
