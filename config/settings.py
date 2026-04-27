@@ -95,8 +95,7 @@ class Settings(BaseSettings):
 
     # CORS — comma-separated list of allowed frontend origins
     # Example: "https://your-frontend.up.railway.app,https://localhost:3000"
-    # Set to "*" ONLY for local dev — never in production
-    ALLOWED_ORIGINS: str = "*"
+    ALLOWED_ORIGINS: str = "https://news-intel-frontend-production-e010.up.railway.app,http://localhost:3000,http://localhost:8080"
 
     # First-run admin account (created on startup if no users exist)
     # Override in .env — remove from env after first login
@@ -107,7 +106,7 @@ class Settings(BaseSettings):
     # "required" — all /insights, /recommendations, /facts endpoints need auth
     # "optional" — endpoints work without auth but provide extra features when authed
     # "disabled" — no auth enforced (development only)
-    AUTH_MODE: str = "disabled"
+    AUTH_MODE: str = "required"
 
     DATABASE_URL: str = "sqlite:///./news_intel.db"
 

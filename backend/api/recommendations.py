@@ -19,6 +19,7 @@ def get_recommendations(
     article_id: int,
     limit: int = Query(5, ge=1, le=20),
     db: Session = Depends(get_db),
+    _user: User = Depends(require_auth),
 ):
     """
     Get recommended articles similar to the given article.
@@ -53,6 +54,7 @@ def get_topic_recommendations(
     topic: str,
     limit: int = Query(10, ge=1, le=50),
     db: Session = Depends(get_db),
+    _user: User = Depends(require_auth),
 ):
     """Get recent articles for a specific topic."""
     from backend.models.article import Article
@@ -72,7 +74,11 @@ def get_topic_recommendations(
 
 
 @router.get("/topics/graph")
-def get_topic_graph(request: Request, db: Session = Depends(get_db)):
+def get_topic_graph(
+    request: Request,
+    db: Session = Depends(get_db),
+    _user: User = Depends(require_auth),
+):
     """
     Topic co-occurrence graph.
 
@@ -90,6 +96,7 @@ def get_related_topics_endpoint(
     topic: str,
     top_n: int = Query(5, ge=1, le=20),
     db: Session = Depends(get_db),
+    _user: User = Depends(require_auth),
 ):
     """
     Get topics related to a given topic via co-occurrence graph.
