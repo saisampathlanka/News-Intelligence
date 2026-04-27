@@ -272,19 +272,24 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 @app.exception_handler(StarletteHTTPException)
 @app.exception_handler(HTTPException)
+@app.exception_handler(404)
+@app.exception_handler(405)
 async def http_exception_handler(request, exc):
     """Custom handler for HTTP errors (404, 403, etc) with clean HTML fallback."""
     accept = request.headers.get("accept", "")
+    status_code = getattr(exc, "status_code", 404)
     
     # Return HTML if browser-like client
     if "text/html" in accept:
         # Determine icon/title based on status
-        if exc.status_code == 404:
+        if status_code == 404:
             icon, title = "🔍", "Page Not Found"
-        elif exc.status_code in (401, 403):
+        elif status_code in (401, 403):
             icon, title = "🔒", "Access Denied"
+        elif status_code == 405:
+            icon, title = "🚫", "Method Not Allowed"
         else:
-            icon, title = "⚠️", f"Error {exc.status_code}"
+            icon, title = "⚠️", f"Error {status_code}"
             
         msg = getattr(exc, "detail", "The requested resource could not be found.")
         
@@ -315,10 +320,10 @@ async def http_exception_handler(request, exc):
         </body>
         </html>
         """
-        return HTMLResponse(content=html, status_code=exc.status_code)
+        return HTMLResponse(content=html, status_code=status_code)
     
     # Fallback to JSON
-    return JSONResponse(status_code=exc.status_code, content={"detail": getattr(exc, "detail", "Not Found")})
+    return JSONResponse(status_code=status_code, content={"detail": getattr(exc, "detail", "Not Found")})
 
 @app.exception_handler(Exception)
 async def generic_exception_handler(request, exc):
