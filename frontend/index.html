@@ -410,7 +410,14 @@ async function apiPost(path, body) {
     var r = await fetch(API_BASE + path, opts);
     if (r.status === 401) return { error: 'unauthorized' };
     if (r.status === 403) return { error: 'forbidden' };
-    if (!r.ok) return null;
+    if (!r.ok) {
+        try {
+            var err = await r.json();
+            return { error: 'api_error', detail: err.detail, errors: err.errors };
+        } catch(e) {
+            return null;
+        }
+    }
     return await r.json();
   } catch(e) { console.error('post', path, e); return null; }
 }
@@ -428,10 +435,13 @@ function closeDModal() { document.getElementById('dmodal').classList.remove('on'
 
 // ── SUMMARY ───────────────────────────────────────────────────────────────────
 async function loadSummary() {
+  if (!S.token) {
+    document.getElementById('stats').innerHTML = '<div class="sc" style="grid-column:1/-1"><div class="sl">Access Restricted</div><div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-top:.3rem">Login to view insights — click <strong style="color:var(--accent);cursor:pointer" onclick="handleAuth()">Login</strong></div></div>';
+    return;
+  }
   var data = await apiFetch('/insights/summary');
   if (!data) {
-    var msg = S.token ? 'Error loading data' : 'Login to view insights';
-    document.getElementById('stats').innerHTML = '<div class="sc" style="grid-column:1/-1"><div class="sl">Access Restricted</div><div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-top:.3rem">' + msg + ' — click <strong style="color:var(--accent);cursor:pointer" onclick="handleAuth()">Login</strong></div></div>';
+    document.getElementById('stats').innerHTML = '<div class="sc" style="grid-column:1/-1"><div class="sl">Error</div><div style="font-family:var(--font-mono);font-size:.7rem;color:var(--muted);margin-top:.3rem">Error loading data.</div></div>';
     return;
   }
   var total = data.total_articles || 0;
@@ -498,7 +508,7 @@ function buildRsel(cur) {
   return h + '</select>';
 }
 async function loadStocks(region) {
-  region = region || S.stockRegion;
+  region = region || S.stockRegion || 'global';
   S.stockRegion = region;
   var s = document.getElementById('rsel');
   if (s) s.value = region;
@@ -523,6 +533,30 @@ async function loadStocks(region) {
   bar.innerHTML = pre + chips + '<span class="mmood ' + moodCls + '">' + mood.toUpperCase() + '</span>' + buildRsel(region);
 }
 function changeStockRegion(r) { loadStocks(r); }
+
+function mapCoordsToRegion(lat, lon) {
+    if (lat > 35 && lon > -25 && lon < 45) return 'europe';
+    if (lat > 25 && lon > -125 && lon < -60) return 'west';
+    if (lat > 5 && lat < 35 && lon > 60 && lon < 95) return 'india';
+    if (lat > -10 && lat < 30 && lon > 95 && lon < 150) return 'southeast_asia';
+    if (lat > 20 && lat < 50 && lon > 100 && lon < 150) return 'east_asia';
+    if (lat > 15 && lat < 40 && lon > 35 && lon < 60) return 'middle_east';
+    if (lat < 35 && lat > -35 && lon > -20 && lon < 55) return 'africa';
+    if (lat < 30 && lon > -110 && lon < -30) return 'latin_america';
+    return 'global';
+}
+function initStocks() {
+  if (navigator.geolocation && (!S.stockRegion || S.stockRegion === 'global')) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var r = mapCoordsToRegion(pos.coords.latitude, pos.coords.longitude);
+      loadStocks(r);
+    }, function(err) {
+      loadStocks('global');
+    }, { timeout: 5000 });
+  } else {
+    loadStocks(S.stockRegion || 'global');
+  }
+}
 
 // ── ARTICLES ──────────────────────────────────────────────────────────────────
 async function loadArticles() {
@@ -736,6 +770,14 @@ async function submitAuth() {
     updateAuthBtn();
     toast('Welcome back!', 'ok');
     init(); // Refresh data
+  } else if (data && data.error === 'api_error') {
+    var msg = data.detail;
+    if (data.errors && data.errors.length) {
+       msg = data.errors[0].message;
+    } else if (Array.isArray(msg) && msg.length) {
+       msg = msg[0].msg || JSON.stringify(msg[0]);
+    }
+    toast(msg, 'err');
   } else {
     toast('Invalid credentials or registration error', 'err');
   }
@@ -778,13 +820,13 @@ window.addEventListener('resize', updateLayout);
     S.user = await apiFetch('/auth/me');
   }
   updateAuthBtn();
-  // Load components in parallel so slow requests (like stocks) don't block others
+  // Load components in parallel so slow requests don't block others
   Promise.all([
-    loadSummary(),
+    (async () => { await loadSummary(); })(),
     loadArticles(),
     loadTrending(),
-    loadStocks(S.stockRegion)
   ]);
+  initStocks();
 })();
 </script>
 </body>
